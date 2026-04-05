@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Undertale Guess Who</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Undertale Guess Who</h1>
+    <div id="initial-screen">
+        <input type="text" id="name-input" placeholder="Your name" required>
+        <button id="create-room-btn">Create Room</button>
+        <br>
+        <input type="text" id="room-code-input" placeholder="Room code" required>
+        <button id="join-room-btn">Join Room</button>
+    </div>
+    <div id="room-screen" style="display: none;">
+        <div id="room-info">Room Code: <span id="room-code"></span></div>
+        <div id="players"></div>
+        <div id="characters"></div>
+        <div id="guess-section">
+            <select id="guess-select"></select>
+            <button id="guess-btn">Guess Character</button>
+        </div>
+        <div id="chat-container">
+            <div id="chat"></div>
+            <div id="answer-buttons" style="display:none;">
+                <button id="yes-btn">Yes</button>
+                <button id="no-btn">No</button>
+            </div>
+            <input type="text" id="message-input" placeholder="Ask a yes/no question...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
