@@ -58,6 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('room-created', (data) => {
         currentRoom = data.roomCode;
         showRoom(data.players, data.answerer);
+        if (data.secretCharacter) {
+            document.getElementById('secret-char-name').textContent = data.secretCharacter;
+            document.getElementById('secret-character').style.display = 'block';
+        }
     });
 
     socket.on('room-joined', (data) => {

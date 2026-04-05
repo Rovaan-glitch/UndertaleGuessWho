@@ -27,7 +27,7 @@ io.on('connection', (socket) => {
             messages: []
         };
         socket.join(roomCode);
-        socket.emit('room-created', { roomCode, players: rooms[roomCode].players, answerer: rooms[roomCode].answerer });
+        socket.emit('room-created', { roomCode, players: rooms[roomCode].players, answerer: rooms[roomCode].answerer, secretCharacter: rooms[roomCode].secretCharacter });
     });
 
     socket.on('join-room', (data) => {

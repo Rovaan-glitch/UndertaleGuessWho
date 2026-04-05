@@ -39,9 +39,10 @@ button:hover {
     background-color: #555;
 }
 
-#room-info {
+#secret-character {
     margin-bottom: 10px;
     font-weight: bold;
+    color: #ffff00;
 }
 
 #guess-section {
