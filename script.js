@@ -57,17 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Socket events
     socket.on('room-created', (data) => {
         currentRoom = data.roomCode;
-        showRoom(data.players, data.answerer);
-        if (data.secretCharacter) {
-            document.getElementById('secret-char-name').textContent = data.secretCharacter;
-            document.getElementById('secret-character').style.display = 'block';
-        }
+        showRoom(data.players, data.answerer, data.secretCharacter);
     });
 
     socket.on('room-joined', (data) => {
         currentRoom = data.roomCode;
-        showRoom(data.players, data.answerer);
-        data.messages.forEach(msg => addMessage(msg.sender, msg.message));
+        showRoom(data.players, data.answerer, data.secretCharacter);
+        data.messages.forEach(msg => addMessage(msg.senderName || msg.sender, msg.message, msg.senderId === myId));
     });
 
     socket.on('player-joined', (data) => {
@@ -79,14 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     socket.on('new-message', (data) => {
-        addMessage(data.sender, data.message);
-        if (myId === answerer && data.sender !== myId) {
-            document.getElementById('answer-buttons').style.display = 'block';
+        const senderName = data.senderId === myId ? 'You' : data.senderName || 'Player';
+        addMessage(senderName, data.message, data.senderId === myId);
+        if (myId === answerer && data.senderId !== myId) {
+            document.getElementById('answer-buttons').style.display = 'flex';
         }
     });
 
     socket.on('question-answered', (data) => {
-        addMessage('Answerer', data.answer ? 'Yes' : 'No');
+        addMessage('Answerer', data.answer ? 'Yes' : 'No', false, true);
+        document.getElementById('answer-buttons').style.display = 'none';
     });
 
     socket.on('game-won', (data) => {
@@ -114,7 +112,7 @@ function joinRoom() {
     socket.emit('join-room', { roomCode, name: myName });
 }
 
-function showRoom(players, ans) {
+function showRoom(players, ans, secretCharacter) {
     answerer = ans;
     document.getElementById('initial-screen').style.display = 'none';
     document.getElementById('room-screen').style.display = 'block';
@@ -122,6 +120,14 @@ function showRoom(players, ans) {
     updatePlayers(players);
     displayCharacters();
     populateGuessSelect();
+    displayRole();
+    if (myId === answerer && secretCharacter) {
+        document.getElementById('secret-char-name').textContent = secretCharacter;
+        document.getElementById('secret-character').style.display = 'block';
+    } else {
+        document.getElementById('secret-character').style.display = 'none';
+    }
+    document.getElementById('answer-buttons').style.display = 'none';
 }
 
 function updatePlayers(players) {
@@ -161,8 +167,20 @@ function sendMessage() {
     const message = input.value.trim();
     if (!message) return;
     socket.emit('send-message', { roomCode: currentRoom, message });
-    addMessage('You', message);
     input.value = '';
+}
+
+function displayRole() {
+    const roleLabel = document.getElementById('role-label');
+    if (myId === answerer) {
+        roleLabel.textContent = 'Role: Answerer';
+        roleLabel.classList.add('answerer');
+        roleLabel.classList.remove('guesser');
+    } else {
+        roleLabel.textContent = 'Role: Guesser';
+        roleLabel.classList.add('guesser');
+        roleLabel.classList.remove('answerer');
+    }
 }
 
 function populateGuessSelect() {
@@ -180,4 +198,24 @@ function guessCharacter() {
     const selected = document.getElementById('guess-select').value;
     if (!selected) return alert('Select a character to guess');
     socket.emit('guess-character', { roomCode: currentRoom, guess: selected });
+}
+
+function addMessage(sender, message, isSelf = false, isSystem = false) {
+    const chat = document.getElementById('chat');
+    const div = document.createElement('div');
+    div.className = 'chat-message';
+    if (isSystem) div.classList.add('system-message');
+    else if (isSelf) div.classList.add('self-message');
+    else div.classList.add('other-message');
+
+    const nameNode = document.createElement('span');
+    nameNode.className = 'chat-sender';
+    nameNode.textContent = isSystem ? '' : `${sender}: `;
+
+    const textNode = document.createElement('span');
+    textNode.textContent = message;
+    div.appendChild(nameNode);
+    div.appendChild(textNode);
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
 }

@@ -35,7 +35,8 @@ io.on('connection', (socket) => {
         if (rooms[roomCode]) {
             rooms[roomCode].players.push({ id: socket.id, name });
             socket.join(roomCode);
-            socket.emit('room-joined', { roomCode, players: rooms[roomCode].players, messages: rooms[roomCode].messages, answerer: rooms[roomCode].answerer });
+            const secretCharacter = rooms[roomCode].answerer === socket.id ? rooms[roomCode].secretCharacter : null;
+            socket.emit('room-joined', { roomCode, players: rooms[roomCode].players, messages: rooms[roomCode].messages, answerer: rooms[roomCode].answerer, secretCharacter });
             socket.to(roomCode).emit('player-joined', { players: rooms[roomCode].players });
         } else {
             socket.emit('error', 'Room not found');
@@ -45,8 +46,11 @@ io.on('connection', (socket) => {
     socket.on('send-message', (data) => {
         const { roomCode, message } = data;
         if (rooms[roomCode]) {
-            rooms[roomCode].messages.push({ sender: socket.id, message });
-            io.to(roomCode).emit('new-message', { sender: socket.id, message });
+            const player = rooms[roomCode].players.find(p => p.id === socket.id);
+            const senderName = player ? player.name : 'Unknown';
+            const messageObject = { senderId: socket.id, senderName, message };
+            rooms[roomCode].messages.push(messageObject);
+            io.to(roomCode).emit('new-message', messageObject);
         }
     });
 
